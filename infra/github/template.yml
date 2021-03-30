@@ -1,0 +1,43 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates an access to github
+Parameters:
+  GitHubPersonalAccessToken:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >
+      Personal Access Token from GitHub that is used by CodePipeline to clone the source from the
+      repository and configure webhooks. This personal access token requires the "repo" and
+      "admin:repo_hook" scopes in order to function correctly. It is strongly recommended that this
+      value be provided using Secrets Manager. In order to pass value from Secrets Manager, set this
+      parameter value to "{{resolve:secretsmanager:your-secret-id:SecretString}}". More information
+      see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html
+
+  PassGitHubPersonalAccessTokenToCodeBuild:
+    Type: String
+    AllowedValues:
+      - "true"
+      - "false"
+    Default: "true"
+    Description: >
+      Determines whether or not your personal access token is passed to CodeBuild. Set this value to
+      "true" if this is the first time using CodeBuild with GitHub, as CodeBuild only supports one
+      personal access token per account, per region. If you have already configured other CodeBuild
+      projects to integrate with GitHub previously, set this value to "false".
+
+Conditions:
+  CreateCodeBuildCredentials:
+    !Equals [!Sub "${PassGitHubPersonalAccessTokenToCodeBuild}", "true"]
+
+Resources:
+  # This grants the CodeBuild service the ability to clone a repository as well as setup a webhook
+  # NOTE: Only one of these tokens can be created per "ServerType" per region. If you plan on setting
+  # up multiple pipelines within the same account and region, you may need to pull this particlar resource
+  # into a different template
+  CodeBuildCredentials:
+    Condition: CreateCodeBuildCredentials
+    Type: AWS::CodeBuild::SourceCredential
+    Properties:
+      Token: !Sub ${GitHubPersonalAccessToken}
+      ServerType: GITHUB
+      AuthType: PERSONAL_ACCESS_TOKEN

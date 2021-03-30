@@ -1,0 +1,22 @@
+Description: >
+  This template deploys an Elatic Container Repository
+Parameters:
+  RepositoryName:
+    Description: The repository name
+    Type: String
+    MinLength: "2"
+    MaxLength: "256"
+    Default: admin
+    AllowedPattern: "(?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)*[a-z0-9]+(?:[._-][a-z0-9]+)*"
+
+Resources:
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      ImageTagMutability: MUTABLE
+      RepositoryName: !Ref RepositoryName
+
+Outputs:
+  ECRRepository:
+    Description: A reference to repository
+    Value: !GetAtt ECRRepository.Arn

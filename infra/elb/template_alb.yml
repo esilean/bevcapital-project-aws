@@ -1,0 +1,99 @@
+Description: >
+  This template deploys an Application Load Balancer that exposes ECS services
+Parameters:
+  EnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+    Default: development
+
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Description: Choose which VPC the Application Load Balancer should be deployed to
+
+  Subnets:
+    Description: Choose which subnets the Application Load Balancer should be deployed to
+    Type: List<AWS::EC2::Subnet::Id>
+
+  ALBScheme:
+    Type: String
+    Description: Choose application load balancer scheme
+    Default: internal
+    AllowedValues: ["internet-facing", "internal"]
+
+Resources:
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the load balancer
+      VpcId: !Ref VPC
+
+  ALBSecurityGroupInHttpWorld:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: "0.0.0.0/0"
+
+  ALBSecurityGroupInHttpWorldIPv6:
+    Type: "AWS::EC2::SecurityGroupIngress"
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIpv6: "::/0"
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub ${EnvironmentName}-alb
+      Type: application
+      Scheme: !Ref ALBScheme
+      Subnets: !Ref Subnets
+      SecurityGroups: [!Ref "ALBSecurityGroup"]
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+
+  # We define a default target group here, as this is a mandatory Parameters
+  # when creating an Application Load Balancer Listener. This is not used, instead
+  # a target group is created per-service in each service template (../services/*)
+  DefaultTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub ${EnvironmentName}-default-alb
+      VpcId: !Ref VPC
+      Port: 80
+      Protocol: HTTP
+
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: "text/plain"
+            MessageBody: "You've reached the listener! Congrats!"
+            StatusCode: "503"
+
+Outputs:
+  LoadBalancer:
+    Description: A reference to the Application Load Balancer
+    Value: !Ref LoadBalancer
+    Export:
+      Name: ARNLoadBalancerBevCapital
+
+  LoadBalancerUrl:
+    Description: The URL of the Application Load Balancer
+    Value: !GetAtt LoadBalancer.DNSName
+
+  HttpListener:
+    Description: The HttpListener of the Application Load Balancer
+    Value: !Ref HttpListener
+    Export:
+      Name: ARNHttpListenerBevCapital

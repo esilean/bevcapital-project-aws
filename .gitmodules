@@ -1,0 +1,9 @@
+[submodule "backend/job-prices"]
+	path = backend/job-prices
+	url = https://github.com/esilean/bevcapital-jobstockprice.git
+[submodule "backend/ms-stocks"]
+	path = backend/ms-stocks
+	url = https://github.com/esilean/bevcapital-msstocks.git
+[submodule "backend/ms-logon"]
+	path = backend/ms-logon
+	url = https://github.com/esilean/bevcapital-mslogon.git

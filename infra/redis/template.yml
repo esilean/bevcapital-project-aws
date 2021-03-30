@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+  License: Apache-2.0
+Description: "AWS CloudFormation Sample Template RDS_MySQL"
+
+Parameters:
+  CacheEndpoint:
+    Description: The cache db endpoint + port (cacheendpoint.com:6379)
+    Type: String
+
+  CachePassword:
+    NoEcho: "true"
+    Description: The database password of the cache db
+    Type: String
+
+Resources:
+  CacheSecretKey:
+    Type: AWS::KMS::Key
+    Properties:
+      KeyPolicy:
+        Statement:
+          - Sid: "Enable IAM User Permissions"
+            Effect: "Allow"
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action: "kms:*"
+            Resource: "*"
+
+  CacheSecretKeyAlias:
+    Type: "AWS::KMS::Alias"
+    Properties:
+      AliasName: alias/CacheSecretKey
+      TargetKeyId: !Ref CacheSecretKey
+
+  CacheSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: CacheSecretBevCapital
+      KmsKeyId: !Ref CacheSecretKey
+      SecretString: !Join
+        - ""
+        - - "{ "
+          - '"cacheEndpoint": "'
+          - !Ref CacheEndpoint
+          - '",'
+          - '"cachePassword": "'
+          - !Ref CachePassword
+          - '" }'

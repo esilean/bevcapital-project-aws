@@ -1,0 +1,99 @@
+Description: >
+  This template deploys an API Gateway to Private Application Load Balance
+Parameters:
+  Subnets:
+    Description: Choose which subnets this ECS cluster should be deployed to
+    Type: List<AWS::EC2::Subnet::Id>
+
+  SecurityGroup:
+    Description: Select the Security Group to use for the ECS cluster hosts
+    Type: AWS::EC2::SecurityGroup::Id
+
+  HttpListener:
+    Type: String
+    Description: A Listener of the Load balancer
+
+  AcmCertArn:
+    Type: String
+    Description: ARN of the Amazon Certificate Manager cert to use for SSL
+
+  BackendDomainName:
+    Type: String
+    Default: "bev-ticketing-ecomapp.xyz"
+    Description: Backend domain name
+
+Resources:
+  PrivateAPIGWvpcLink:
+    Type: AWS::ApiGatewayV2::VpcLink
+    Properties:
+      Name: BevCapital-Private-VPCLink
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      SubnetIds: !Ref Subnets
+
+  APIGatewayALB:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: APIGateway-HttpAPI-ALB
+      ProtocolType: HTTP
+
+  APIGatewayStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: $default
+      AutoDeploy: true
+      ApiId: !Ref APIGatewayALB
+
+  APIGatewayIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      Description: Private ALB Integration
+      ApiId: !Ref APIGatewayALB
+      ConnectionId: !Ref PrivateAPIGWvpcLink
+      ConnectionType: VPC_LINK
+      IntegrationMethod: ANY
+      IntegrationType: HTTP_PROXY
+      IntegrationUri: !Ref HttpListener
+      PayloadFormatVersion: "1.0"
+
+  BackDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Properties:
+      DomainName: !Ref BackendDomainName
+      DomainNameConfigurations:
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref AcmCertArn
+
+  BackDomainNameMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Properties:
+      ApiId: !Ref APIGatewayALB
+      DomainName: !Ref BackendDomainName
+      Stage: !Ref APIGatewayStage
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref APIGatewayALB
+      RouteKey: "GET /"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegration
+
+Outputs:
+  APIURL:
+    Description: Invoke URL
+    Value: !Sub https://${APIGatewayALB}.execute-api.${AWS::Region}.amazonaws.com/
+
+  APIGatewayALB:
+    Description: API Gateway ALB Id
+    Value: !Ref APIGatewayALB
+    Export:
+      Name: APIGatewayALBId
+
+  APIGatewayIntegration:
+    Description: API Gateway Integration Id
+    Value: !Ref APIGatewayIntegration
+    Export:
+      Name: APIGatewayIntegrationId

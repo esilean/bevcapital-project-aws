@@ -1,0 +1,1 @@
+docker run -d --name db-redis redis

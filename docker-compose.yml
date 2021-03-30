@@ -1,0 +1,72 @@
+# This docker-compose file serves for testing purposes
+version: "3.5"
+
+networks:
+  netcapital:
+    driver: bridge
+
+services:
+  xms-logon:
+    image: esilean/xms-logon
+    build:
+      context: ./backend/ms-logon/src
+      dockerfile: ../Dockerfile
+    container_name: ms-logon
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AWS__Region=sa-east-1
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - RDS_ENDPOINT=
+      - RDS_PASSWORD=
+      - CACHE_ENDPOINT=
+      - CACHE_PASSWORD=
+      - SNSSettings__TopicArn=
+    ports:
+      - "5001:80"
+    networks:
+      - netcapital
+
+  xms-stocks:
+    image: esilean/xms-stocks
+    build:
+      context: ./backend/ms-stocks/src
+      dockerfile: ../Dockerfile
+    container_name: ms-stocks
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AWS__Region=sa-east-1
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - RDS_ENDPOINT=
+      - RDS_PASSWORD=
+      - CACHE_ENDPOINT=
+      - CACHE_PASSWORD=
+      - SQSSettings__QueueURL=
+    ports:
+      - "5002:80"
+    networks:
+      - netcapital
+
+  xms-job-prices:
+    image: esilean/xms-job-prices
+    build:
+      context: ./backend/job-prices/src
+      dockerfile: ../Dockerfile
+    container_name: ms-jobprices
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - AWS__Region=sa-east-1
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - RDS_ENDPOINT=
+      - RDS_PASSWORD=
+      - CACHE_ENDPOINT=
+      - CACHE_PASSWORD=
+    # ports:
+    #   - "5010:80"
+    networks:
+      - netcapital

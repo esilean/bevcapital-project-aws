@@ -1,0 +1,158 @@
+Description: >
+  This template deploys routes to api gateway
+Parameters:
+  APIGatewayALBId:
+    Type: String
+    Description: Api Gateway
+
+  APIGatewayIntegrationId:
+    Type: String
+    Default: ""
+    Description: Private ALB Integration
+
+Resources:
+  #LOGON
+  MSLogonList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSLogon - List all users"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "GET /ms-logon/api/logon/list"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSLogonDetail:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSLogon - User details"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "GET /ms-logon/api/logon/detail/{0}"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSLogonCreate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSLogon - Creates an user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "POST /ms-logon/api/logon/create"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSLogonUpdate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSLogon - Updates an user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "PUT /ms-logon/api/logon/update/{0}"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSLogonDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSLogon - Deletes an user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "DELETE /ms-logon/api/logon/delete/{0}"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSLogonSignIn:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSLogon - Sign in an user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "POST /ms-logon/api/logon/signin"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  #STOCKS
+  MSStocksList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSStocks - List all stocks"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "GET /ms-stocks/api/stocks"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSStocksCreate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSStocks - Creates a stock"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "POST /ms-stocks/api/stocks"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSStocksUpdate:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSStocks - Updates a stock"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "PUT /ms-stocks/api/stocks/{0}"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSStocksDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSStocks - Deletes a stocks"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "DELETE /ms-stocks/api/stocks/{0}"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  #USER STOCKS
+  MSUserStocksList:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSUserStocks - List all stocks of the signed user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "GET /ms-stocks/api/stocks/user"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSUserStocksAdd:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSUserStocks - Add a stock to the signed user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "POST /ms-stocks/api/stocks/user"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
+
+  MSUserStocksDelete:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      OperationName: "MSUserStocks - Delete a stock of the signed user"
+      ApiId: !Ref APIGatewayALBId
+      RouteKey: "DELETE /ms-stocks/api/stocks/{0}/user"
+      Target: !Join
+        - /
+        - - integrations
+          - !Ref APIGatewayIntegrationId
