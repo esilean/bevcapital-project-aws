@@ -55,36 +55,20 @@ Resources:
         - Key: deregistration_delay.timeout_seconds
           Value: 60
 
-  # NLBListener:
-  #   Type: AWS::ElasticLoadBalancingV2::Listener
-  #   Condition: HasLoadBalancerCertificateArn
-  #   DependsOn:
-  #     - LoadBalancer
-  #   Properties:
-  #     LoadBalancerArn: !Ref LoadBalancer
-  #     Port: 80
-  #     Protocol: TCP
-  #     DefaultActions:
-  #       - Type: forward
-  #         TargetGroupArn: !Ref DefaultTargetGroup
-
-  # NLBListenerCert:
-  #   Type: AWS::ElasticLoadBalancingV2::ListenerCertificate
-  #   Properties:
-  #     Certificates:
-  #       - CertificateArn: !Ref LoadBalancerCertificateArn
-  #     ListenerArn: !Ref NLBListener
 
 Outputs:
   LoadBalancer:
     Description: A reference to the Network Load Balancer
     Value: !Ref LoadBalancer
+    Export:
+      Name: ARNLoadBalancerBevCapital
 
-  # NLBListener:
-  #   Condition: HasLoadBalancerCertificateArn
-  #   Description: NLB HTTPS listener for services
-  #   Value: !Ref NLBListener
-
-  NLBUrl:
+  LoadBalancerUrl:
     Description: The URL of the Network Load Balancer
     Value: !GetAtt LoadBalancer.DNSName
+
+  TCPListener:
+    Description: The TCP Listener of the Network Load Balancer
+    Value: !Ref TCPListener
+    Export:
+      Name: ARNTCPListenerBevCapital
