@@ -10,9 +10,13 @@ Parameters:
     Type: AWS::EC2::VPC::Id
     Description: Choose which VPC the Application Load Balancer should be deployed to
 
-  Subnets:
+  PublicSubnet1:
     Description: Choose which subnets the Application Load Balancer should be deployed to
-    Type: List<AWS::EC2::Subnet::Id>
+    Type: AWS::EC2::Subnet::Id
+
+  PublicSubnet2:
+    Description: Choose which subnets the Application Load Balancer should be deployed to
+    Type: AWS::EC2::Subnet::Id
 
   NLBScheme:
     Type: String
@@ -36,10 +40,28 @@ Resources:
       Name: !Sub ${EnvironmentName}-nlb
       Type: network
       Scheme: !Ref NLBScheme
-      Subnets: !Ref Subnets
+      SubnetMappings:
+        - AllocationId: !GetAtt
+            - FirstEIP
+            - AllocationId
+          SubnetId: !Ref PublicSubnet1
+        - AllocationId: !GetAtt
+            - SecondEIP
+            - AllocationId
+          SubnetId: !Ref PublicSubnet2
       Tags:
         - Key: Name
           Value: !Ref EnvironmentName
+
+  FirstEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
+
+  SecondEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
 
   # We define a default target group here, as this is a mandatory Parameters
   # when creating an Application Load Balancer Listener. This is not used, instead
@@ -67,8 +89,3 @@ Outputs:
     Description: The URL of the Network Load Balancer
     Value: !GetAtt LoadBalancer.DNSName
 
-  TCPListener:
-    Description: The TCP Listener of the Network Load Balancer
-    Value: !Ref TCPListener
-    Export:
-      Name: ARNTCPListenerBevCapital
