@@ -1,0 +1,91 @@
+Description: >
+  This template deploys an API Gateway to Private Application Load Balance
+Parameters:
+  NetworkLoadBalancerARN:
+    Description: A network load balancer ARN
+    Type: String
+
+  StageName:
+    Description: A Stage
+    Type: String
+    Default: dev
+
+Resources:
+  PrivateAPIGWvpcLink:
+    Type: AWS::ApiGateway::VpcLink
+    Properties:
+      Name: BevCapital-Private-RestVPCLink
+      Description: "Rest VPC Link"
+      TargetArns:
+        - !Ref NetworkLoadBalancerARN
+
+  APIGatewayNLB:
+    DependsOn: PrivateAPIGWvpcLink
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "APIGatewayNLB - BevCapital"
+      Description: "Rest API"
+      Parameters:
+        endpointConfigurationTypes: REGIONAL
+
+  Deployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - "DummyMethod"
+    Properties:
+      RestApiId: !Ref APIGatewayNLB
+      Description: BevCapital deployment
+
+  Dev:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      StageName: !Ref StageName
+      Description: !Sub ${StageName} Stage
+      RestApiId: !Ref APIGatewayNLB
+      DeploymentId: !Ref Deployment
+      Variables:
+        Stack: !Ref StageName
+
+  DummyMethod:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+      OperationName: Dummy
+      RestApiId: !Ref APIGatewayNLB
+      ResourceId: !GetAtt
+        - APIGatewayNLB
+        - RootResourceId
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        Type: MOCK
+
+Outputs:
+  APIURL:
+    Description: Invoke URL
+    Value: !Sub https://${APIGatewayNLB}.execute-api.${AWS::Region}.amazonaws.com/
+
+  APIGatewayNLB:
+    Description: API Gateway NLB Id
+    Value: !Ref APIGatewayNLB
+    Export:
+      Name: APIGatewayNLBId
+
+  APIGatewayNLBRootId:
+    Description: API Gateway NLB Id
+    Value: !GetAtt
+      - APIGatewayNLB
+      - RootResourceId
+    Export:
+      Name: APIGatewayNLBRootId
+
+  PrivateAPIGWvpcLink:
+    Description: Private API GW vpcLink Id
+    Value: !Ref PrivateAPIGWvpcLink
+    Export:
+      Name: PrivateAPIGWvpcLinkId
+
+  Deployment:
+    Description: BevCapital Deployment Id
+    Value: !Ref Deployment
+    Export:
+      Name: DeploymentId
