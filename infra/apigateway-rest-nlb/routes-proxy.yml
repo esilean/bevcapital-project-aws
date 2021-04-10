@@ -29,17 +29,28 @@ Resources:
       ParentId: !Ref APIGatewayNLBRootId
       PathPart: ms-logon
 
-  GetMethod:
+  MSLogonResourceProxy:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref APIGatewayNLBId
+      ParentId: !Ref MSLogonResource
+      PathPart: "{proxy+}"
+
+  ProxyMethod:
     Type: AWS::ApiGateway::Method
     Properties:
-      OperationName: ListUsers
+      OperationName: ProxyAll
       RestApiId: !Ref APIGatewayNLBId
-      ResourceId: !Ref MSLogonResource
-      HttpMethod: GET
+      ResourceId: !Ref MSLogonResourceProxy
+      HttpMethod: ANY
       AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.proxy: true
       Integration:
         ConnectionId: !Ref PrivateAPIGWvpcLinkId
         ConnectionType: VPC_LINK
-        IntegrationHttpMethod: GET
+        IntegrationHttpMethod: ANY
         Type: HTTP_PROXY
-        Uri: !Sub http://${NetworkLoadBalancerDNS}:${Port}/ms-logon/api/logon/list
+        RequestParameters:
+          integration.request.path.proxy: method.request.path.proxy
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${Port}/ms-logon/{proxy}
