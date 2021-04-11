@@ -13,8 +13,9 @@ A microfrontend is in development...
 
 ## AWS - All services uses AWS Cloudformation /intra/\*
 
-- AWS API Gateway - HTTP API + VPC Link
-- AWS Private Application Load Balancer
+- AWS API Gateway - Http + ALB or Rest + NBL
+- AWS Application Load Balancer
+- AWS Network Load Balancer
 - AWS ECS - Clusters EC2
 - AWS RDS - MySql
 - AWS SNS/SQS - Event Sourcing
@@ -23,6 +24,7 @@ A microfrontend is in development...
 - AWS CodeBuild
 - AWS CodeDeploy - Deploy CloudFormation
 - AWS ECR
+- AWS Secret Manager
 - AWS X-Ray
 - AWS CloudWatch - Metrics and Logs
 
