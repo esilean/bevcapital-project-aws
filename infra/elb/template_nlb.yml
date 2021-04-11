@@ -1,5 +1,6 @@
+AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  This template deploys an Network Load Balancer
+  This template deploys an Network Load Balancer that exposes ECS services
 Parameters:
   EnvironmentName:
     Description: An environment name that will be prefixed to resource names
@@ -54,7 +55,7 @@ Outputs:
     Description: A reference to the Network Load Balancer
     Value: !Ref LoadBalancer
     Export:
-      Name: ARNLoadBalancerBevCapital
+      Name: NetworkLoadBalancerARN
 
   LoadBalancerUrl:
     Description: The URL of the Network Load Balancer

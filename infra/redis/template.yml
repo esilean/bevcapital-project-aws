@@ -1,15 +1,18 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Metadata:
-  License: Apache-2.0
-Description: "AWS CloudFormation Sample Template RDS_MySQL"
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates a RedisSecret for user and password
 
 Parameters:
+  SecretName:
+    Description: Name of the secret
+    Type: String
+    Default: CacheSecretBevCapital
+
   CacheEndpoint:
     Description: The cache db endpoint + port (cacheendpoint.com:6379)
     Type: String
 
   CachePassword:
-    NoEcho: "true"
+    NoEcho: true
     Description: The database password of the cache db
     Type: String
 
@@ -35,7 +38,7 @@ Resources:
   CacheSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: CacheSecretBevCapital
+      Name: !Ref SecretName
       KmsKeyId: !Ref CacheSecretKey
       SecretString: !Join
         - ""

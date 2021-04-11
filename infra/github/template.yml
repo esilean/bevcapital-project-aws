@@ -1,9 +1,8 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Creates an access to github
+Description: This template creates an access to github
 Parameters:
   GitHubPersonalAccessToken:
     Type: String
-    Default: ""
     NoEcho: true
     Description: >
       Personal Access Token from GitHub that is used by CodePipeline to clone the source from the
@@ -16,9 +15,9 @@ Parameters:
   PassGitHubPersonalAccessTokenToCodeBuild:
     Type: String
     AllowedValues:
-      - "true"
-      - "false"
-    Default: "true"
+      - true
+      - false
+    Default: true
     Description: >
       Determines whether or not your personal access token is passed to CodeBuild. Set this value to
       "true" if this is the first time using CodeBuild with GitHub, as CodeBuild only supports one

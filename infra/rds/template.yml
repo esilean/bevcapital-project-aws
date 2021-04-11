@@ -1,7 +1,5 @@
-AWSTemplateFormatVersion: "2010-09-09"
-Metadata:
-  License: Apache-2.0
-Description: "AWS CloudFormation Sample Template RDS_MySQL"
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template creates a RDS
 
 Parameters:
   Engine:
@@ -38,6 +36,11 @@ Parameters:
     MaxValue: "5000"
     ConstraintDescription: size must be 4.
 
+  SecretName:
+    Description: Name of the secret
+    Type: String
+    Default: RDSSecretBevCapital
+
   DBAllocatedStorage:
     Default: "5"
     Description: The size of the database (Gb)
@@ -50,6 +53,7 @@ Parameters:
     Description: If you update the EngineVersion property to a version that's different from the DB instance's current major version, set this property to true.
     Type: String
     AllowedValues: [true, false]
+    Default: false
     ConstraintDescription: "Value must be boolean value."
 
   AutoMinorVersionUpgrade:
@@ -142,7 +146,7 @@ Resources:
             Resource: "*"
 
   RDSSecretKeyAlias:
-    Type: "AWS::KMS::Alias"
+    Type: AWS::KMS::Alias
     Properties:
       AliasName: alias/RDSSecretKey
       TargetKeyId: !Ref RDSSecretKey
@@ -150,7 +154,7 @@ Resources:
   RDSSecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: RDSSecretBevCapital
+      Name: !Ref SecretName
       KmsKeyId: !Ref RDSSecretKey
       GenerateSecretString:
         SecretStringTemplate: !Join ["", ['{"username": "', !Ref DBUser, '"}']]
@@ -159,7 +163,7 @@ Resources:
         ExcludeCharacters: '"@/\'
 
   RDSInstance:
-    Type: "AWS::RDS::DBInstance"
+    Type: AWS::RDS::DBInstance
     DeletionPolicy: Delete
     Properties:
       AllocatedStorage: !Ref DBAllocatedStorage
@@ -199,13 +203,13 @@ Outputs:
     Description: The database instance identifier
     Value: !Ref RDSInstance
     Export:
-      Name: RDSBevCapital
+      Name: DBInstanceIdentifier
 
   DBEndpoint:
     Description: The connection endpoint for the database.
     Value: !GetAtt RDSInstance.Endpoint.Address
     Export:
-      Name: RDSBevCapital-Endpoint
+      Name: DBInstance-Endpoint
 
   DBPort:
     Description: The port number on which the database accepts connections.

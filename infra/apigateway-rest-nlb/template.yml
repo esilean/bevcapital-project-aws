@@ -1,5 +1,6 @@
+AWSTemplateFormatVersion: 2010-09-09
 Description: >
-  This template deploys an API Gateway to Private Application Load Balance
+  This template deploys a Rest Api Gateway to Private Network Load Balancer
 Parameters:
   NetworkLoadBalancerARN:
     Description: A network load balancer ARN
@@ -11,20 +12,20 @@ Parameters:
     Default: dev
 
 Resources:
-  PrivateAPIGWvpcLink:
+  RestApiGatewayVpcLink:
     Type: AWS::ApiGateway::VpcLink
     Properties:
-      Name: BevCapital-Private-RestVPCLink
-      Description: "Rest VPC Link"
+      Name: RestVPCLink
+      Description: Rest Vpc Link
       TargetArns:
         - !Ref NetworkLoadBalancerARN
 
-  APIGatewayNLB:
-    DependsOn: PrivateAPIGWvpcLink
+  RestApiGateway:
+    DependsOn: RestApiGatewayVpcLink
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: "APIGatewayNLB - BevCapital"
-      Description: "Rest API"
+      Name: RestApiGateway
+      Description: Rest Api Gateway Description
       Parameters:
         endpointConfigurationTypes: REGIONAL
 
@@ -33,15 +34,15 @@ Resources:
     DependsOn:
       - "DummyMethod"
     Properties:
-      RestApiId: !Ref APIGatewayNLB
-      Description: BevCapital deployment
+      RestApiId: !Ref RestApiGateway
+      Description: Rest api gateway deployment
 
-  Dev:
+  Stage:
     Type: AWS::ApiGateway::Stage
     Properties:
       StageName: !Ref StageName
       Description: !Sub ${StageName} Stage
-      RestApiId: !Ref APIGatewayNLB
+      RestApiId: !Ref RestApiGateway
       DeploymentId: !Ref Deployment
       Variables:
         Stack: !Ref StageName
@@ -50,9 +51,9 @@ Resources:
     Type: "AWS::ApiGateway::Method"
     Properties:
       OperationName: Dummy
-      RestApiId: !Ref APIGatewayNLB
+      RestApiId: !Ref RestApiGateway
       ResourceId: !GetAtt
-        - APIGatewayNLB
+        - RestApiGateway
         - RootResourceId
       HttpMethod: GET
       AuthorizationType: NONE
@@ -62,30 +63,30 @@ Resources:
 Outputs:
   APIURL:
     Description: Invoke URL
-    Value: !Sub https://${APIGatewayNLB}.execute-api.${AWS::Region}.amazonaws.com/
+    Value: !Sub https://${RestApiGateway}.execute-api.${AWS::Region}.amazonaws.com/
 
-  APIGatewayNLB:
-    Description: API Gateway NLB Id
-    Value: !Ref APIGatewayNLB
+  RestApiGateway:
+    Description: Rest Api Gateway Id
+    Value: !Ref RestApiGateway
     Export:
-      Name: APIGatewayNLBId
+      Name: RestApiGatewayId
 
-  APIGatewayNLBRootId:
-    Description: API Gateway NLB Id
+  RestApiGatewayRootId:
+    Description: Rest Api Gateway Root Id
     Value: !GetAtt
-      - APIGatewayNLB
+      - RestApiGateway
       - RootResourceId
     Export:
-      Name: APIGatewayNLBRootId
+      Name: RestApiGatewayRootId
 
-  PrivateAPIGWvpcLink:
+  RestApiGatewayVpcLink:
     Description: Private API GW vpcLink Id
-    Value: !Ref PrivateAPIGWvpcLink
+    Value: !Ref RestApiGatewayVpcLink
     Export:
-      Name: PrivateAPIGWvpcLinkId
+      Name: RestApiGatewayVpcLinkId
 
   Deployment:
-    Description: BevCapital Deployment Id
+    Description: Rest Api Gateway Deployment Id
     Value: !Ref Deployment
     Export:
-      Name: DeploymentId
+      Name: RestApiGatewayDeploymentId

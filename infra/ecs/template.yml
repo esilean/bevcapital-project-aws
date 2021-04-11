@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: 2010-09-09
 Description: >
   This template deploys an ECS cluster to the provided VPC and subnets
   using an Auto Scaling Group
@@ -11,11 +12,13 @@ Parameters:
     Description: Which instance type should we use to build the ECS cluster?
     Type: String
     Default: t2.micro
+    AllowedValues: [t2.micro]
+    ConstraintDescription: must select a valid database instance type.
 
   ClusterSize:
     Description: How many ECS hosts do you want to initially deploy?
     Type: Number
-    Default: 1
+    Default: 3
 
   VPC:
     Description: Choose which VPC this ECS cluster should be deployed to
@@ -33,6 +36,13 @@ Parameters:
     Description: ECS-Optimized AMI ID
     Type: AWS::EC2::Image::Id
     Default: ami-02e1f6dc90eb8de9d
+
+  UsePublicIp:
+    Description: Indicates if the ecs is public or not
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    ConstraintDescription: "Value must be boolean value."
 
   KeyName:
     Type: String
@@ -74,7 +84,7 @@ Resources:
       ImageId: !Ref ECSAMI
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
-      # AssociatePublicIpAddress: true
+      AssociatePublicIpAddress: !Ref UsePublicIp
       BlockDeviceMappings:
         - DeviceName: "/dev/xvda"
           Ebs:
@@ -396,7 +406,7 @@ Outputs:
     Description: A reference to ECS service auto scaling role
     Value: !GetAtt ECSServiceAutoScalingRole.Arn
     Export:
-      Name: ARNECSAutoScallingBevCapital
+      Name: ECSServiceAutoScalingRoleARN
 
   ECSAutoScalingGroupName:
     Description: A reference to ECS AutoScaling Group Name

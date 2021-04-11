@@ -1,3 +1,4 @@
+AWSTemplateFormatVersion: 2010-09-09
 Description: >
   This template deploys an Application Load Balancer that exposes ECS services
 Parameters:
@@ -14,7 +15,7 @@ Parameters:
     Description: Choose which subnets the Application Load Balancer should be deployed to
     Type: List<AWS::EC2::Subnet::Id>
 
-  ALBScheme:
+  Scheme:
     Type: String
     Description: Choose application load balancer scheme
     Default: internal
@@ -50,7 +51,7 @@ Resources:
     Properties:
       Name: !Sub ${EnvironmentName}-alb
       Type: application
-      Scheme: !Ref ALBScheme
+      Scheme: !Ref Scheme
       Subnets: !Ref Subnets
       SecurityGroups: [!Ref "ALBSecurityGroup"]
       Tags:
@@ -86,7 +87,7 @@ Outputs:
     Description: A reference to the Application Load Balancer
     Value: !Ref LoadBalancer
     Export:
-      Name: ARNLoadBalancerBevCapital
+      Name: ApplicationLoadBalancerARN
 
   LoadBalancerUrl:
     Description: The URL of the Application Load Balancer
@@ -96,4 +97,4 @@ Outputs:
     Description: The HttpListener of the Application Load Balancer
     Value: !Ref HttpListener
     Export:
-      Name: ARNHttpListenerBevCapital
+      Name: ApplicationLoadBalancerHttpListenerARN

@@ -1,29 +1,29 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Creates a SNS that delivers messages to SQSs
+Description: This template creates a SNS Fifo that delivers messages to SQS Fifo
 
 Parameters:
   TopicName:
     Type: String
-    Default: tf-logon-user
-    Description: Topic Name
+    Default: topic-user-bevcapital
+    Description: Topic Name that will receive the messages
 
   QueueName:
     Type: String
-    Default: qf-logon-user
-    Description: Queue name
+    Default: queue-user-bevcapital
+    Description: Queue name that will devliver the messages
 
 Resources:
-  SNSTopic:
+  AppSNSTopic:
     Type: AWS::SNS::Topic
     Properties:
       TopicName: !Sub ${TopicName}.fifo
       FifoTopic: true
       DisplayName: !Ref TopicName
       Subscription:
-        - Endpoint: !GetAtt AppUserQueue.Arn
+        - Endpoint: !GetAtt AppQueue.Arn
           Protocol: sqs
 
-  SNSTopicPolicy:
+  AppSNSTopicPolicy:
     Type: AWS::SNS::TopicPolicy
     Properties:
       PolicyDocument:
@@ -36,11 +36,11 @@ Resources:
               - sns:Subscribe
               - sns:Receive
             Resource:
-              - !Ref SNSTopic
+              - !Ref AppSNSTopic
       Topics:
-        - !Ref SNSTopic
+        - !Ref AppSNSTopic
 
-  AppUserQueue:
+  AppQueue:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: !Sub ${QueueName}.fifo
@@ -50,11 +50,11 @@ Resources:
       MessageRetentionPeriod: 120
       ReceiveMessageWaitTimeSeconds: 10
 
-  AppUserQueuePolicy:
+  AppQueuePolicy:
     Type: "AWS::SQS::QueuePolicy"
     Properties:
       Queues:
-        - Ref: AppUserQueue
+        - Ref: AppQueue
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -70,40 +70,33 @@ Resources:
               - sqs:ListQueueTags
               - sqs:ChangeMessageVisibility
             Resource:
-              - !GetAtt AppUserQueue.Arn
+              - !GetAtt AppQueue.Arn
 
 Outputs:
-  AppUserQueue:
-    Description: URL of new Amazon SQS Queue
+  AppQueue:
+    Description: URL of Amazon SQS Queue
     Value:
-      Ref: AppUserQueue
+      Ref: AppQueue
     Export:
-      Name: AppUserQueueBevCapital
+      Name: AppQueueURL
 
-  AppUserQueueARN:
-    Description: ARN of new AmazonSQS Queue
+  AppQueueARN:
+    Description: ARN of AmazonSQS Queue
     Value:
       Fn::GetAtt:
-        - AppUserQueue
+        - AppQueue
         - Arn
 
-  AppUserQueueName:
-    Description: "Name of new Amazon SQS Queue"
+  AppSNSTopicARN:
+    Description: ARN of SNS Topic
     Value:
-      Fn::GetAtt:
-        - AppUserQueue
-        - QueueName
-
-  SNSTopicARN:
-    Description: ARN of new SNS Topic
-    Value:
-      Ref: SNSTopic
+      Ref: AppSNSTopic
     Export:
-      Name: SNSTopicARNBevCapital
+      Name: AppSNSTopicARN
 
-  SNSTopicName:
-    Description: "Name of new SNS Topic"
+  AppSNSTopicName:
+    Description: Name of SNS Topic
     Value:
       Fn::GetAtt:
-        - SNSTopic
+        - AppSNSTopic
         - TopicName

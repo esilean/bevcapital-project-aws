@@ -1,14 +1,5 @@
-Description: >
-  This template deploys routes to api gateway
-Parameters:
-  APIGatewayALBId:
-    Type: String
-    Description: Api Gateway
-
-  APIGatewayIntegrationId:
-    Type: String
-    Default: ""
-    Description: Private ALB Integration
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template deploys routes to Http Api Gateway
 
 Resources:
   #LOGON
@@ -16,143 +7,169 @@ Resources:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSLogon - List all users"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "GET /ms-logon/api/logon/list"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSLogonDetail:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSLogon - User details"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "GET /ms-logon/api/logon/detail/{0}"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSLogonCreate:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSLogon - Creates an user"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "POST /ms-logon/api/logon/create"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSLogonUpdate:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSLogon - Updates an user"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "PUT /ms-logon/api/logon/update/{0}"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSLogonDelete:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSLogon - Deletes an user"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "DELETE /ms-logon/api/logon/delete/{0}"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSLogonSignIn:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSLogon - Sign in an user"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "POST /ms-logon/api/logon/signin"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   #STOCKS
   MSStocksList:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSStocks - List all stocks"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "GET /ms-stocks/api/stocks"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSStocksCreate:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSStocks - Creates a stock"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "POST /ms-stocks/api/stocks"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSStocksUpdate:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSStocks - Updates a stock"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "PUT /ms-stocks/api/stocks/{0}"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSStocksDelete:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSStocks - Deletes a stocks"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "DELETE /ms-stocks/api/stocks/{0}"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   #USER STOCKS
   MSUserStocksList:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSUserStocks - List all stocks of the signed user"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "GET /ms-stocks/api/stocks/user"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSUserStocksAdd:
     Type: AWS::ApiGatewayV2::Route
     Properties:
       OperationName: "MSUserStocks - Add a stock to the signed user"
-      ApiId: !Ref APIGatewayALBId
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "POST /ms-stocks/api/stocks/user"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId
 
   MSUserStocksDelete:
     Type: AWS::ApiGatewayV2::Route
     Properties:
-      OperationName: "MSUserStocks - Delete a stock of the signed user"
-      ApiId: !Ref APIGatewayALBId
+      OperationName: "MSUserStocks - Delete a stock from the signed user"
+      ApiId: !ImportValue
+        Fn::Sub: HttpApiGatewayId
       RouteKey: "DELETE /ms-stocks/api/stocks/{0}/user"
       Target: !Join
         - /
         - - integrations
-          - !Ref APIGatewayIntegrationId
+          - !ImportValue
+            Fn::Sub: HttpApiGatewayIntegrationId

@@ -1,45 +1,412 @@
-Description: >
-  This template deploys routes to api gateway rest
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template deploys routes to rest api gateway usings proxies
+
 Parameters:
   NetworkLoadBalancerDNS:
-    Description: A network load balancer DNS
+    Description: The network load balancer DNS
     Type: String
 
-  Port:
+  MSLogonPort:
+    Description: The MSLogon service port
     Type: Number
-    Description: Port of mslogon
+    Default: 8080
 
-  APIGatewayNLBId:
-    Type: String
-    Description: Api Gateway
-
-  APIGatewayNLBRootId:
-    Type: String
-    Description: Api Gateway
-
-  PrivateAPIGWvpcLinkId:
-    Type: String
+  MSStocksPort:
+    Description: The MSStocks service port
+    Type: Number
+    Default: 8081
 
 Resources:
-  #LOGON
-  MSLogonResource:
+  # LOGON RESOURCES
+  MSLogonRootResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      RestApiId: !Ref APIGatewayNLBId
-      ParentId: !Ref APIGatewayNLBRootId
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !ImportValue
+        Fn::Sub: RestApiGatewayRootId
       PathPart: ms-logon
 
-  GetMethod:
+  MSLogonApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonRootResource
+      PathPart: api
+
+  MSLogonLogonResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonApiResource
+      PathPart: logon
+
+  MSLogonListResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonLogonResource
+      PathPart: list
+
+  MSLogonCreateResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonLogonResource
+      PathPart: create
+
+  MSLogonUpdateResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonLogonResource
+      PathPart: update
+
+  MSLogonUpdateIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonUpdateResource
+      PathPart: "{id}"
+
+  MSLogonDeleteResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonLogonResource
+      PathPart: delete
+
+  MSLogonDeleteIdResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonDeleteResource
+      PathPart: "{id}"
+
+  MSLogonSigninResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonLogonResource
+      PathPart: signin
+
+  #LIST ALL USERS
+  MSLogonList:
     Type: AWS::ApiGateway::Method
     Properties:
-      OperationName: ListUsers
-      RestApiId: !Ref APIGatewayNLBId
-      ResourceId: !Ref MSLogonResource
+      OperationName: "MSLogon - List all users"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSLogonListResource
       HttpMethod: GET
       AuthorizationType: NONE
       Integration:
-        ConnectionId: !Ref PrivateAPIGWvpcLinkId
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
         ConnectionType: VPC_LINK
         IntegrationHttpMethod: GET
         Type: HTTP_PROXY
-        Uri: !Sub http://${NetworkLoadBalancerDNS}:${Port}/ms-logon/api/logon/list
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSLogonPort}/ms-logon/api/logon/list
+
+  #CREATE AN USER
+  MSLogonCreate:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSLogon - Creates an user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSLogonCreateResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: POST
+        Type: HTTP_PROXY
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSLogonPort}/ms-logon/api/logon/create
+
+  #UPDATES AN USER
+  MSLogonUpdate:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSLogon - Updates an user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSLogonUpdateIdResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+        method.request.path.id: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: PUT
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+          integration.request.path.id: method.request.path.id
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSLogonPort}/ms-logon/api/logon/update/{id}
+
+  #DELETES AN USER
+  MSLogonDelete:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSLogon - Deletes an user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSLogonDeleteIdResource
+      HttpMethod: DELETE
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+        method.request.path.id: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: DELETE
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+          integration.request.path.id: method.request.path.id
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSLogonPort}/ms-logon/api/logon/delete/{id}
+
+  #SIGN THE USER IN
+  MSLogonSignIn:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSLogon - Sign in an user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSLogonSigninResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: POST
+        Type: HTTP_PROXY
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSLogonPort}/ms-logon/api/logon/signin
+
+  #STOCKS RESOURCES
+  MSStocksRootResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !ImportValue
+        Fn::Sub: RestApiGatewayRootId
+      PathPart: ms-stocks
+
+  MSStocksApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSStocksRootResource
+      PathPart: api
+
+  MSStocksStocksResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSStocksApiResource
+      PathPart: stocks
+
+  MSUserStocksResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSStocksStocksResource
+      PathPart: user
+
+  MSStocksSymbolResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSStocksStocksResource
+      PathPart: "{symbol}"
+
+  MSUserStocksSymbolUserResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSStocksSymbolResource
+      PathPart: user
+
+  #LIST ALL STOCKS
+  MSStocksList:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSStocks - List all stocks"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSStocksStocksResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: GET
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks
+
+  #CREATES A STOCK
+  MSStocksCreate:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSStocks - Creates a stock"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSStocksStocksResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: POST
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks
+
+  #UPDATES A STOCK
+  MSStocksUpdate:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSStocks - Updates a stock"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSStocksSymbolResource
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+        method.request.path.symbol: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: PUT
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+          integration.request.path.symbol: method.request.path.symbol
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks/{symbol}
+
+  #DELETES A STOCK
+  MSStocksDelete:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSStocks - Removes a stock"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSStocksSymbolResource
+      HttpMethod: DELETE
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+        method.request.path.symbol: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: DELETE
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+          integration.request.path.symbol: method.request.path.symbol
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks/{symbol}
+
+  #LIST ALL STOCKS FROM LOGGED USER
+  MSUserStocksList:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSUserStocks - List all stocks of the signed user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSUserStocksResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: GET
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks/user
+
+  #ADD A STOCK TO THE LOGGED USER
+  MSUserStocksAdd:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSUserStocks - Adds a stock to the logged user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSUserStocksResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: POST
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks/user
+
+  #REMOVES A STOCK FROM THE LOGGED USER
+  MSUserStocksDelete:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: "MSUserStocks - Delete a stock from the signed user"
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSUserStocksSymbolUserResource
+      HttpMethod: DELETE
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.header.Authorization: true
+        method.request.path.symbol: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: DELETE
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.header.Authorization: method.request.header.Authorization
+          integration.request.path.symbol: method.request.path.symbol
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:${MSStocksPort}/ms-stocks/api/stocks/{symbol}/user

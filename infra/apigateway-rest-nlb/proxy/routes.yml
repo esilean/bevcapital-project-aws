@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: This template deploys routes to rest api gateway usings proxies
+
+Parameters:
+  NetworkLoadBalancerDNS:
+    Description: The network load balancer DNS
+    Type: String
+
+Resources:
+  #LOGON
+  MSLogonResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !ImportValue
+        Fn::Sub: RestApiGatewayRootId
+      PathPart: ms-logon
+
+  MSLogonResourceProxy:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSLogonResource
+      PathPart: "{proxy+}"
+
+  MSLogonResourceProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: ProxyAll
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSLogonResourceProxy
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.proxy: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: ANY
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.path.proxy: method.request.path.proxy
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:8080/ms-logon/{proxy}
+
+  #STOCKS
+  MSStocksResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !ImportValue
+        Fn::Sub: RestApiGatewayRootId
+      PathPart: ms-stocks
+
+  MSStocksResourceProxy:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ParentId: !Ref MSStocksResource
+      PathPart: "{proxy+}"
+
+  MSStocksResourceProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      OperationName: ProxyAll
+      RestApiId: !ImportValue
+        Fn::Sub: RestApiGatewayId
+      ResourceId: !Ref MSStocksResourceProxy
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      RequestParameters:
+        method.request.path.proxy: true
+        method.request.header.Authorization: true
+      Integration:
+        ConnectionId: !ImportValue
+          Fn::Sub: RestApiGatewayVpcLinkId
+        ConnectionType: VPC_LINK
+        IntegrationHttpMethod: ANY
+        Type: HTTP_PROXY
+        RequestParameters:
+          integration.request.path.proxy: method.request.path.proxy
+          integration.request.header.Authorization: method.request.header.Authorization
+        Uri: !Sub http://${NetworkLoadBalancerDNS}:8081/ms-stocks/{proxy}
