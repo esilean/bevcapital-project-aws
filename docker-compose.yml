@@ -9,7 +9,7 @@ services:
   xms-logon:
     image: esilean/xms-logon
     build:
-      context: ./backend/ms-logon/src
+      context: ./backend/ms-logon/logon-api/src
       dockerfile: ../Dockerfile
     container_name: ms-logon
     restart: unless-stopped

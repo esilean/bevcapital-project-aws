@@ -41,7 +41,7 @@ Parameters:
     Description: Indicates if the ecs is public or not
     Type: String
     AllowedValues: [true, false]
-    Default: false
+    Default: true
     ConstraintDescription: "Value must be boolean value."
 
   KeyName:
